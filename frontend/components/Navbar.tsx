@@ -2,14 +2,17 @@
 
 import { useState, useEffect } from "react";
 import { AccountPanel } from "./AccountPanel";
-import { CreateBetModal } from "./CreateBetModal";
-import { useBets } from "@/lib/hooks/useFootballBets";
+import {
+  useGuidelines,
+  useModerationResults,
+} from "@/lib/hooks/useContentModeration";
 import { Logo, LogoMark } from "./Logo";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const { data: bets } = useBets();
+  const { data: guidelines } = useGuidelines();
+  const { data: results } = useModerationResults();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,15 +36,15 @@ export function Navbar() {
 
   // Only apply border radius on desktop (md breakpoint and up)
   const getBorderRadius = () => {
-    if (typeof window !== 'undefined' && window.innerWidth >= 768) {
+    if (typeof window !== "undefined" && window.innerWidth >= 768) {
       return Math.round(scrollProgress * 9999); // Fully rounded when scrolled on desktop
     }
     return 0; // No rounding on mobile
   };
   const borderRadius = getBorderRadius();
 
-  const totalBets = bets?.length || 0;
-  const resolvedBets = bets?.filter(bet => bet.has_resolved).length || 0;
+  const totalGuidelines = guidelines?.length || 0;
+  const totalResults = results?.length || 0;
 
   return (
     <header
@@ -51,9 +54,9 @@ export function Navbar() {
       <div
         className="transition-all duration-500 ease-out"
         style={{
-          width: '100%',
-          maxWidth: isScrolled ? '80rem' : '100%',
-          margin: '0 auto',
+          width: "100%",
+          maxWidth: isScrolled ? "80rem" : "100%",
+          margin: "0 auto",
           borderRadius: `${borderRadius}px`,
         }}
       >
@@ -63,21 +66,21 @@ export function Navbar() {
             borderColor: `oklch(0.3 0.02 0 / ${0.4 + scrollProgress * 0.4})`,
             background: `linear-gradient(135deg, oklch(0.18 0.01 0 / ${0.1 + scrollProgress * 0.3}) 0%, oklch(0.15 0.01 0 / ${0.05 + scrollProgress * 0.25}) 50%, oklch(0.16 0.01 0 / ${0.08 + scrollProgress * 0.27}) 100%)`,
             borderRadius: `${borderRadius}px`,
-            borderWidth: '1px',
-            borderLeftWidth: isScrolled ? '1px' : '0px',
-            borderRightWidth: isScrolled ? '1px' : '0px',
-            borderTopWidth: isScrolled ? '1px' : '0px',
+            borderWidth: "1px",
+            borderLeftWidth: isScrolled ? "1px" : "0px",
+            borderRightWidth: isScrolled ? "1px" : "0px",
+            borderTopWidth: isScrolled ? "1px" : "0px",
             boxShadow: isScrolled
-              ? '0 32px 64px 0 rgba(0, 0, 0, 0.2), inset 0 1px 0 0 oklch(0.3 0.02 0 / 0.3)'
-              : 'none',
-            backdropFilter: 'blur(16px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              ? "0 32px 64px 0 rgba(0, 0, 0, 0.2), inset 0 1px 0 0 oklch(0.3 0.02 0 / 0.3)"
+              : "none",
+            backdropFilter: "blur(16px) saturate(180%)",
+            WebkitBackdropFilter: "blur(16px) saturate(180%)",
           }}
         >
           <div
             className="px-6 transition-all duration-500 mx-auto"
             style={{
-              maxWidth: isScrolled ? '80rem' : '112rem',
+              maxWidth: isScrolled ? "80rem" : "112rem",
             }}
           >
             <div
@@ -89,24 +92,29 @@ export function Navbar() {
                 {/* Show mark only on mobile, full logo on desktop */}
                 <LogoMark size="md" className="flex md:hidden" />
                 <Logo size="md" className="hidden md:flex" />
-                <span className="text-lg md:text-xl font-bold ml-2">Football Market</span>
+                <span className="text-lg md:text-xl font-bold ml-2">
+                  Content Moderation
+                </span>
               </div>
 
               {/* Center: Stats */}
               <div className="hidden md:flex items-center gap-6 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Total Bets:</span>
-                  <span className="text-foreground font-bold text-accent">{totalBets}</span>
+                  <span className="text-muted-foreground">Guidelines:</span>
+                  <span className="text-foreground font-bold text-accent">
+                    {totalGuidelines}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Resolved:</span>
-                  <span className="text-foreground font-bold text-accent">{resolvedBets}</span>
+                  <span className="text-muted-foreground">Moderated:</span>
+                  <span className="text-foreground font-bold text-accent">
+                    {totalResults}
+                  </span>
                 </div>
               </div>
 
               {/* Right: Actions */}
               <div className="flex items-center gap-3">
-                <CreateBetModal />
                 <AccountPanel />
               </div>
             </div>
