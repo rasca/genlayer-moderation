@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Shield, Loader2, FileText, Tag, ScrollText } from "lucide-react";
+import { Shield, Loader2, FileText, ScrollText } from "lucide-react";
 import {
   useModerateContent,
   useGuidelines,
@@ -10,7 +10,6 @@ import {
 import { useWallet } from "@/lib/genlayer/wallet";
 import { error } from "@/lib/utils/toast";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 
 export function ModerationPanel() {
@@ -19,26 +18,23 @@ export function ModerationPanel() {
   const { data: guidelines, isLoading: guidelinesLoading } = useGuidelines();
   const { moderateContent, isModerating } = useModerateContent();
 
-  const [postId, setPostId] = useState("");
   const [postContent, setPostContent] = useState("");
   const [guidelineId, setGuidelineId] = useState("");
 
   const [errors, setErrors] = useState({
-    postId: "",
     postContent: "",
     guidelineId: "",
   });
 
+  const generatePostId = (): string => {
+    return crypto.randomUUID();
+  };
+
   const validateForm = (): boolean => {
     const newErrors = {
-      postId: "",
       postContent: "",
       guidelineId: "",
     };
-
-    if (!postId.trim()) {
-      newErrors.postId = "Post ID is required";
-    }
 
     if (!postContent.trim()) {
       newErrors.postContent = "Post content is required";
@@ -65,13 +61,12 @@ export function ModerationPanel() {
     }
 
     moderateContent({
-      postId: postId.trim(),
+      postId: generatePostId(),
       postContent: postContent.trim(),
       guidelineId,
     });
 
     // Reset form on submission (will show result in table)
-    setPostId("");
     setPostContent("");
     setGuidelineId("");
   };
@@ -100,59 +95,34 @@ export function ModerationPanel() {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Post ID */}
-            <div className="space-y-2">
-              <Label htmlFor="postId" className="flex items-center gap-2">
-                <Tag className="w-4 h-4" />
-                Post ID
-              </Label>
-              <Input
-                id="postId"
-                type="text"
-                placeholder="Unique post identifier"
-                value={postId}
-                onChange={(e) => {
-                  setPostId(e.target.value);
-                  setErrors({ ...errors, postId: "" });
-                }}
-                className={errors.postId ? "border-destructive" : ""}
-                disabled={isModerating}
-              />
-              {errors.postId && (
-                <p className="text-xs text-destructive">{errors.postId}</p>
-              )}
-            </div>
-
-            {/* Guideline Selection */}
-            <div className="space-y-2">
-              <Label htmlFor="guidelineId" className="flex items-center gap-2">
-                <ScrollText className="w-4 h-4" />
-                Guideline
-              </Label>
-              <select
-                id="guidelineId"
-                value={guidelineId}
-                onChange={(e) => {
-                  setGuidelineId(e.target.value);
-                  setErrors({ ...errors, guidelineId: "" });
-                }}
-                disabled={isModerating || guidelinesLoading}
-                className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
-                  errors.guidelineId ? "border-destructive" : "border-input"
-                }`}
-              >
-                <option value="">Select a guideline...</option>
-                {guidelines?.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.id}
-                  </option>
-                ))}
-              </select>
-              {errors.guidelineId && (
-                <p className="text-xs text-destructive">{errors.guidelineId}</p>
-              )}
-            </div>
+          {/* Guideline Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="guidelineId" className="flex items-center gap-2">
+              <ScrollText className="w-4 h-4" />
+              Guideline
+            </Label>
+            <select
+              id="guidelineId"
+              value={guidelineId}
+              onChange={(e) => {
+                setGuidelineId(e.target.value);
+                setErrors({ ...errors, guidelineId: "" });
+              }}
+              disabled={isModerating || guidelinesLoading}
+              className={`flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${
+                errors.guidelineId ? "border-destructive" : "border-input"
+              }`}
+            >
+              <option value="">Select a guideline...</option>
+              {guidelines?.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.id}
+                </option>
+              ))}
+            </select>
+            {errors.guidelineId && (
+              <p className="text-xs text-destructive">{errors.guidelineId}</p>
+            )}
           </div>
 
           {/* Post Content */}
