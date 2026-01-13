@@ -138,3 +138,41 @@ Your output must be valid JSON without any formatting prefix or suffix.
             post_id: {gid: result for gid, result in results.items()}
             for post_id, results in self.moderation_results.items()
         }
+
+    @gl.public.view
+    def get_moderation_results_paginated(self, page: int, per_page: int) -> dict:
+        """
+        Get paginated moderation results.
+        Returns a flat list of results with pagination info.
+
+        Args:
+            page: Page number (1-indexed)
+            per_page: Number of results per page
+
+        Returns:
+            dict with 'results', 'total', 'page', 'per_page', 'total_pages'
+        """
+        # Flatten all results into a list
+        all_results = []
+        for post_id, guideline_results in self.moderation_results.items():
+            for guideline_id, result in guideline_results.items():
+                all_results.append(result)
+
+        total = len(all_results)
+        total_pages = (total + per_page - 1) // per_page if per_page > 0 else 0
+
+        # Calculate slice indices (1-indexed page)
+        start = (page - 1) * per_page
+        end = start + per_page
+
+        # Get the page of results (reversed so newest first)
+        reversed_results = list(reversed(all_results))
+        page_results = reversed_results[start:end]
+
+        return {
+            "results": page_results,
+            "total": total,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": total_pages,
+        }

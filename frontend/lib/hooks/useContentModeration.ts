@@ -6,7 +6,7 @@ import ContentModeration from "../contracts/ContentModeration";
 import { getContractAddress, getStudioUrl } from "../genlayer/client";
 import { useWallet } from "../genlayer/wallet";
 import { success, error, configError } from "../utils/toast";
-import type { Guideline, ModerationResult } from "../contracts/types";
+import type { Guideline, ModerationResult, PaginatedModerationResults } from "../contracts/types";
 
 /**
  * Hook to get the ContentModeration contract instance
@@ -98,6 +98,34 @@ export function useModerationResults() {
         return Promise.resolve([]);
       }
       return contract.getModerationResults();
+    },
+    refetchOnWindowFocus: true,
+    staleTime: 2000,
+    enabled: !!contract,
+  });
+}
+
+/**
+ * Hook to fetch paginated moderation results
+ * @param page - Page number (1-indexed)
+ * @param perPage - Results per page
+ */
+export function usePaginatedModerationResults(page: number, perPage: number = 10) {
+  const contract = useContentModerationContract();
+
+  return useQuery<PaginatedModerationResults, Error>({
+    queryKey: ["moderationResults", "paginated", page, perPage],
+    queryFn: () => {
+      if (!contract) {
+        return Promise.resolve({
+          results: [],
+          total: 0,
+          page,
+          per_page: perPage,
+          total_pages: 0,
+        });
+      }
+      return contract.getModerationResultsPaginated(page, perPage);
     },
     refetchOnWindowFocus: true,
     staleTime: 2000,

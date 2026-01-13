@@ -29,3 +29,11 @@ export interface ModerationFilters {
   post_id?: string;
   guideline_id?: string;
 }
+
+export interface PaginatedModerationResults {
+  results: ModerationResult[];
+  total: number;
+  page: number;
+  per_page: number;
+  total_pages: number;
+}

@@ -1,6 +1,6 @@
 import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
-import type { Guideline, ModerationResult, TransactionReceipt } from "./types";
+import type { Guideline, ModerationResult, TransactionReceipt, PaginatedModerationResults } from "./types";
 
 /**
  * Helper to convert GenLayer Address objects to hex string
@@ -218,6 +218,65 @@ class ContentModeration {
     } catch (error) {
       console.error("Error fetching moderation results:", error);
       throw new Error("Failed to fetch moderation results from contract");
+    }
+  }
+
+  /**
+   * Get paginated moderation results
+   * @param page - Page number (1-indexed)
+   * @param perPage - Number of results per page
+   * @returns Paginated results with metadata
+   */
+  async getModerationResultsPaginated(page: number, perPage: number): Promise<PaginatedModerationResults> {
+    try {
+      const response: any = await this.client.readContract({
+        address: this.contractAddress,
+        functionName: "get_moderation_results_paginated",
+        args: [page, perPage],
+      });
+
+      console.log("Raw paginated response:", response);
+
+      if (response instanceof Map) {
+        const resultsMap = response.get("results");
+        const results: ModerationResult[] = [];
+
+        if (resultsMap instanceof Map || Array.isArray(resultsMap)) {
+          const items = Array.isArray(resultsMap) ? resultsMap : Array.from(resultsMap.values());
+          for (const resultData of items) {
+            if (resultData instanceof Map) {
+              const resultObj: any = {};
+              for (const [key, value] of resultData.entries()) {
+                if (key === "moderator_address") {
+                  resultObj[key] = addressToString(value);
+                } else {
+                  resultObj[key] = value;
+                }
+              }
+              results.push(resultObj as ModerationResult);
+            }
+          }
+        }
+
+        return {
+          results,
+          total: response.get("total") || 0,
+          page: response.get("page") || page,
+          per_page: response.get("per_page") || perPage,
+          total_pages: response.get("total_pages") || 0,
+        };
+      }
+
+      return {
+        results: [],
+        total: 0,
+        page,
+        per_page: perPage,
+        total_pages: 0,
+      };
+    } catch (error) {
+      console.error("Error fetching paginated moderation results:", error);
+      throw new Error("Failed to fetch paginated moderation results from contract");
     }
   }
 

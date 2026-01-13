@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Loader2,
   Shield,
@@ -8,16 +9,22 @@ import {
   AlertTriangle,
   XCircle,
   ChevronRight,
+  ChevronLeft,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
-  useModerationResults,
+  usePaginatedModerationResults,
   useContentModerationContract,
 } from "@/lib/hooks/useContentModeration";
 import { useWallet } from "@/lib/genlayer/wallet";
 import { AddressDisplay } from "./AddressDisplay";
 import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 import type { ModerationResult } from "@/lib/contracts/types";
+
+const RESULTS_PER_PAGE = 10;
 
 // Helper to truncate text with ellipsis
 function truncateText(text: string, maxLength: number): string {
@@ -56,9 +63,14 @@ function getOutcomeBadge(outcome: ModerationResult["outcome"]) {
 }
 
 export function ModerationResultsTable() {
+  const [currentPage, setCurrentPage] = useState(1);
   const contract = useContentModerationContract();
-  const { data: results, isLoading, isError } = useModerationResults();
+  const { data: paginatedData, isLoading, isError } = usePaginatedModerationResults(currentPage, RESULTS_PER_PAGE);
   const { address } = useWallet();
+
+  const results = paginatedData?.results || [];
+  const totalResults = Number(paginatedData?.total || 0);
+  const totalPages = Number(paginatedData?.total_pages || 0);
 
   if (isLoading) {
     return (
@@ -122,13 +134,16 @@ export function ModerationResultsTable() {
     );
   }
 
+  const startResult = (currentPage - 1) * RESULTS_PER_PAGE + 1;
+  const endResult = Math.min(currentPage * RESULTS_PER_PAGE, totalResults);
+
   return (
     <div className="brand-card p-6 overflow-hidden">
       <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
         <Shield className="w-5 h-5 text-accent" />
         Moderation Results
         <span className="text-sm font-normal text-muted-foreground">
-          ({results.length})
+          ({totalResults} total)
         </span>
       </h2>
       <div className="overflow-x-auto">
@@ -169,6 +184,52 @@ export function ModerationResultsTable() {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/10">
+          <p className="text-sm text-muted-foreground">
+            Showing {startResult}-{endResult} of {totalResults} results
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronsLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <span className="text-sm px-3">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(totalPages)}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronsRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
