@@ -7,7 +7,9 @@ import {
   CheckCircle,
   AlertTriangle,
   XCircle,
+  ChevronRight,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   useModerationResults,
   useContentModerationContract,
@@ -16,6 +18,12 @@ import { useWallet } from "@/lib/genlayer/wallet";
 import { AddressDisplay } from "./AddressDisplay";
 import { Badge } from "./ui/badge";
 import type { ModerationResult } from "@/lib/contracts/types";
+
+// Helper to truncate text with ellipsis
+function truncateText(text: string, maxLength: number): string {
+  if (!text || text.length <= maxLength) return text;
+  return text.slice(0, maxLength - 1) + "…";
+}
 
 // Helper function to get outcome badge styling
 function getOutcomeBadge(outcome: ModerationResult["outcome"]) {
@@ -145,6 +153,9 @@ export function ModerationResultsTable() {
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Moderator
               </th>
+              <th className="px-4 py-3 w-10">
+                <span className="sr-only">Details</span>
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
@@ -168,19 +179,34 @@ interface ResultRowProps {
 }
 
 function ResultRow({ result, currentAddress }: ResultRowProps) {
+  const router = useRouter();
   const isOwner =
     currentAddress?.toLowerCase() === result.moderator_address?.toLowerCase();
   const outcomeBadge = getOutcomeBadge(result.outcome);
   const OutcomeIcon = outcomeBadge.icon;
 
+  const handleRowClick = () => {
+    router.push(
+      `/moderation/${encodeURIComponent(result.post_id)}/${encodeURIComponent(result.guideline_id)}`
+    );
+  };
+
   return (
-    <tr className="group hover:bg-white/5 transition-colors animate-fade-in">
+    <tr
+      className="group hover:bg-white/5 transition-colors animate-fade-in cursor-pointer"
+      onClick={handleRowClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && handleRowClick()}
+    >
       <td className="px-4 py-4">
-        <span className="font-mono text-sm text-accent">{result.post_id}</span>
+        <span className="font-mono text-sm text-accent">
+          {truncateText(result.post_id, 20)}
+        </span>
       </td>
-      <td className="px-4 py-4 max-w-[200px]">
-        <p className="text-sm truncate" title={result.post_content}>
-          {result.post_content}
+      <td className="px-4 py-4">
+        <p className="text-sm truncate max-w-[200px]" title={result.post_content}>
+          {truncateText(result.post_content, 60)}
         </p>
       </td>
       <td className="px-4 py-4">
@@ -194,12 +220,9 @@ function ResultRow({ result, currentAddress }: ResultRowProps) {
           {outcomeBadge.label}
         </Badge>
       </td>
-      <td className="px-4 py-4 max-w-[250px]">
-        <p
-          className="text-sm text-muted-foreground truncate"
-          title={result.reasoning}
-        >
-          {result.reasoning}
+      <td className="px-4 py-4">
+        <p className="text-sm text-muted-foreground truncate max-w-[250px]" title={result.reasoning}>
+          {truncateText(result.reasoning, 80)}
         </p>
       </td>
       <td className="px-4 py-4">
@@ -215,6 +238,9 @@ function ResultRow({ result, currentAddress }: ResultRowProps) {
             </Badge>
           )}
         </div>
+      </td>
+      <td className="px-4 py-4">
+        <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
       </td>
     </tr>
   );

@@ -3,6 +3,43 @@ import { studionet } from "genlayer-js/chains";
 import type { Guideline, ModerationResult, TransactionReceipt } from "./types";
 
 /**
+ * Helper to convert GenLayer Address objects to hex string
+ */
+function addressToString(value: any): string {
+  if (typeof value === "string" && value.length > 0) return value;
+
+  // Handle { bytes: { 0: 59, 1: 73, ... } } format from GenLayer
+  if (value?.bytes && typeof value.bytes === "object") {
+    const bytesObj = value.bytes;
+    const byteArray: number[] = [];
+    for (let i = 0; i < 20; i++) {
+      if (bytesObj[i] !== undefined) {
+        byteArray.push(bytesObj[i]);
+      }
+    }
+    if (byteArray.length === 20) {
+      return "0x" + byteArray.map(b => b.toString(16).padStart(2, "0")).join("");
+    }
+  }
+
+  // Handle Map (GenLayer sometimes returns Maps)
+  if (value instanceof Map) {
+    const entries = Array.from(value.entries());
+    for (const [k, v] of entries) {
+      if (typeof v === "string" && v.startsWith("0x")) return v;
+    }
+  }
+  if (value?.hex) return value.hex;
+  if (value?.address) return value.address;
+  if (value?.value) return String(value.value);
+  // Handle Address objects that serialize to string
+  const str = value?.toString?.();
+  if (str && typeof str === "string" && str.startsWith("0x")) return str;
+
+  return "";
+}
+
+/**
  * ContentModeration contract class for interacting with the GenLayer Content Moderation contract
  */
 class ContentModeration {
@@ -62,7 +99,7 @@ class ContentModeration {
             (obj: any, [key, value]: any) => {
               // Handle Address objects - convert to string
               if (key === "creator_address") {
-                obj[key] = typeof value === "string" ? value : (value?.toString?.() || String(value));
+                obj[key] = addressToString(value);
               } else {
                 obj[key] = value;
               }
@@ -105,7 +142,7 @@ class ContentModeration {
           (obj: any, [key, value]: any) => {
             // Handle Address objects - convert to string
             if (key === "creator_address") {
-              obj[key] = typeof value === "string" ? value : (value?.toString?.() || String(value));
+              obj[key] = addressToString(value);
             } else {
               obj[key] = value;
             }
@@ -151,7 +188,7 @@ class ContentModeration {
                 (obj: any, [key, value]: any) => {
                   // Handle Address objects - convert to string
                   if (key === "moderator_address") {
-                    obj[key] = typeof value === "string" ? value : (value?.toString?.() || String(value));
+                    obj[key] = addressToString(value);
                   } else {
                     obj[key] = value;
                   }
@@ -203,7 +240,7 @@ class ContentModeration {
             (obj: any, [key, value]: any) => {
               // Handle Address objects - convert to string
               if (key === "moderator_address") {
-                obj[key] = typeof value === "string" ? value : (value?.toString?.() || String(value));
+                obj[key] = addressToString(value);
               } else {
                 obj[key] = value;
               }

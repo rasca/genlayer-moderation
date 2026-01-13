@@ -5,14 +5,23 @@ import { toast as sonnerToast, ExternalToast } from "sonner";
  * Colors and styling match the existing design system
  */
 
+// Solid colors for toast styling (matches brand)
+const TOAST_BG = "#1a1625";
+const TOAST_BORDER = "#3d3654";
+const TOAST_TEXT = "#f5f5f5";
+const TOAST_ACCENT = "#9B6AF6";
+const TOAST_ERROR = "#ef4444";
+const TOAST_WARNING = "#facc15";
+const TOAST_MUTED = "#a1a1aa";
+
 // Default toast options with brand styling
 const defaultOptions: ExternalToast = {
   duration: 4000,
   closeButton: true,
   style: {
-    background: 'hsl(var(--background))',
-    border: '1px solid hsl(var(--border))',
-    color: 'hsl(var(--foreground))',
+    background: TOAST_BG,
+    border: `1px solid ${TOAST_BORDER}`,
+    color: TOAST_TEXT,
   },
 };
 
@@ -22,9 +31,9 @@ export const success = (message: string, options?: ExternalToast) => {
     ...defaultOptions,
     duration: 4000,
     style: {
-      background: 'hsl(var(--background))',
-      border: '1px solid hsl(var(--accent) / 0.3)',
-      color: 'hsl(var(--accent))',
+      background: TOAST_BG,
+      border: `1px solid ${TOAST_ACCENT}4d`,
+      color: TOAST_ACCENT,
       ...options?.style,
     },
     ...options,
@@ -37,9 +46,9 @@ export const error = (message: string, options?: ExternalToast) => {
     ...defaultOptions,
     duration: 6000, // Longer for errors
     style: {
-      background: 'hsl(var(--background))',
-      border: '1px solid hsl(var(--destructive) / 0.5)',
-      color: 'hsl(var(--destructive))',
+      background: TOAST_BG,
+      border: `1px solid ${TOAST_ERROR}80`,
+      color: TOAST_ERROR,
       ...options?.style,
     },
     ...options,
@@ -52,9 +61,9 @@ export const warning = (message: string, options?: ExternalToast) => {
     ...defaultOptions,
     duration: 5000,
     style: {
-      background: 'hsl(var(--background))',
-      border: '1px solid rgb(234 179 8 / 0.3)', // yellow-500/30
-      color: 'rgb(250 204 21)', // yellow-400
+      background: TOAST_BG,
+      border: `1px solid ${TOAST_WARNING}4d`,
+      color: TOAST_WARNING,
       ...options?.style,
     },
     ...options,
@@ -109,9 +118,9 @@ export const configError = (message: string, description?: string, action?: { la
       onClick: action.onClick,
     } : undefined,
     style: {
-      background: 'hsl(var(--background))',
-      border: '1px solid hsl(var(--destructive) / 0.5)',
-      color: 'hsl(var(--destructive))',
+      background: TOAST_BG,
+      border: `1px solid ${TOAST_ERROR}80`,
+      color: TOAST_ERROR,
     },
   });
 };
@@ -122,9 +131,9 @@ export const userRejected = (message: string) => {
     duration: 2000,
     closeButton: false,
     style: {
-      background: 'hsl(var(--background))',
-      border: '1px solid hsl(var(--border))',
-      color: 'hsl(var(--muted-foreground))',
+      background: TOAST_BG,
+      border: `1px solid ${TOAST_BORDER}`,
+      color: TOAST_MUTED,
     },
   });
 };
