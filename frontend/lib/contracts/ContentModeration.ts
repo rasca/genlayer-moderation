@@ -1,5 +1,6 @@
 import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
+import { getAddress } from "viem";
 import type { Guideline, ModerationResult, TransactionReceipt, PaginatedModerationResults } from "./types";
 
 /**
@@ -51,14 +52,15 @@ class ContentModeration {
     address?: string | null,
     studioUrl?: string
   ) {
-    this.contractAddress = contractAddress as `0x${string}`;
+    // Normalize address with proper checksum
+    this.contractAddress = getAddress(contractAddress) as `0x${string}`;
 
     const config: any = {
       chain: studionet,
     };
 
     if (address) {
-      config.account = address as `0x${string}`;
+      config.account = getAddress(address) as `0x${string}`;
     }
 
     if (studioUrl) {
