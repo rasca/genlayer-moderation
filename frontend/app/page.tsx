@@ -1,6 +1,7 @@
 "use client";
 
 import { Navbar } from "@/components/Navbar";
+import { OnboardingBanner } from "@/components/OnboardingBanner";
 import { ModerationPanel } from "@/components/ModerationPanel";
 import { ModerationResultsTable } from "@/components/ModerationResultsTable";
 import { GuidelinesPanel } from "@/components/GuidelinesPanel";
@@ -25,6 +26,9 @@ export default function HomePage() {
               Define guidelines, submit content, get consensus-validated decisions.
             </p>
           </div>
+
+          {/* Onboarding Banner - I'm an agent / I'm human */}
+          <OnboardingBanner />
 
           {/* Main Grid Layout - 2/1 columns on desktop, stacked on mobile */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
